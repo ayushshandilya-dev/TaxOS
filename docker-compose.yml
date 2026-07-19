@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  taxos-api:
+    build: .
+    container_name: taxos-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - taxos_db_data:/app/data
+    environment:
+      - REDIS_URL=redis://taxos-redis:6379/0
+    depends_on:
+      - taxos-redis
+    restart: always
+
+  taxos-redis:
+    image: redis:7-alpine
+    container_name: taxos-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  taxos-worker:
+    build: .
+    container_name: taxos-worker
+    command: python -m unittest test_production.py # Stand-in worker runner or testing loop
+    volumes:
+      - .:/app
+    environment:
+      - REDIS_URL=redis://taxos-redis:6379/0
+    depends_on:
+      - taxos-redis
+    restart: on-failure
+
+volumes:
+  taxos_db_data:

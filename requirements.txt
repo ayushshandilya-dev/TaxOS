@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-multipart
+qrcode[pil]
+requests
+jinja2
+pillow
+httpx
+cryptography
+zeroconf
+websockets
+numpy
+
