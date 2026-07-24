@@ -1,4 +1,4 @@
-# TaxOS 🇮🇳
+# TaxOS 
 
 Hey there! Welcome to **TaxOS**. We built this project to solve a massive problem for Indian freelancers, small businesses, and startups: dealing with the new Income Tax Act of 2025 without losing your mind (or your privacy).
 
