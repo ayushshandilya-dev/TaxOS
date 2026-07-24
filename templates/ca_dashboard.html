@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaxOS 💼 — CA Firm Practice Management Suite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #090d16;
+            --surface: rgba(18, 26, 43, 0.7);
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --accent-primary: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.35);
+            --emerald: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --cyan: #06b6d4;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
+            line-height: 1.5;
+        }
+
+        h1, h2, h3, h4, .brand-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Navbar */
+        header {
+            background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--surface-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--emerald));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .logo-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-btn.ca-portal {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(16, 185, 129, 0.3));
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #fff;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1280px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Header Banner */
+        .ca-banner {
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge-firm {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        /* Metrics grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            color: #fff;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--surface-border);
+            padding-bottom: 12px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: rgba(99, 102, 241, 0.2);
+            color: #fff;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+        }
+
+        .panel {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-lg);
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 12px;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .badge-compliant { background: rgba(16, 185, 129, 0.15); color: var(--emerald); padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+        .badge-notice { background: rgba(244, 63, 94, 0.15); color: var(--rose); padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+        .badge-discrepancy { background: rgba(245, 158, 11, 0.15); color: var(--amber); padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+
+        .btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+
+        .btn-emerald {
+            background: var(--emerald);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 1rem;
+        }
+
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--surface-border);
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent-primary);
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo-box">
+                <div class="logo-icon">💼</div>
+                <div class="logo-title">TaxOS Practice Suite</div>
+            </div>
+            <nav class="nav-links">
+                <a href="/" class="nav-btn">Dashboard</a>
+                <a href="/summary" class="nav-btn">Summary & Ledger</a>
+                <a href="/ca" class="nav-btn ca-portal active">CA Practice Suite 💼</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="ca-banner">
+            <div>
+                <span class="badge-firm">CHARTERED ACCOUNTANT PRACTICE WORKSPACE</span>
+                <h1 style="font-size: 2rem; font-weight: 800; margin-top: 4px;">CA Firm Practice & Pre-Audit Suite</h1>
+                <p style="color: var(--text-secondary); margin-top: 4px;">
+                    Automated multi-taxpayer AIS reconciliation, batch advance tax modeling, and instant ITD notice defense package generator.
+                </p>
+            </div>
+            <div>
+                <button onclick="loadDashboardMetrics()" class="btn btn-emerald">🔄 Refresh Firm Matrix</button>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Active Taxpayers (Clients)</div>
+                <div class="metric-value" id="m-total-clients">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Compliant Files</div>
+                <div class="metric-value" style="color: var(--emerald);" id="m-compliant">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">AIS Discrepancies Flagged</div>
+                <div class="metric-value" style="color: var(--amber);" id="m-ais-discrepancy">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Pending ITD Notices</div>
+                <div class="metric-value" style="color: var(--rose);" id="m-notices">--</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tab-clients', this)">Client Practice Roster</button>
+            <button class="tab-btn" onclick="switchTab('tab-ais', this)">Bulk AIS Reconciliation</button>
+            <button class="tab-btn" onclick="switchTab('tab-advtax', this)">Batch Advance Tax Schedule</button>
+            <button class="tab-btn" onclick="switchTab('tab-notices', this)">Notice Defense Generator</button>
+        </div>
+
+        <!-- Tab 1: Client Roster -->
+        <div id="tab-clients" class="panel tab-content">
+            <h3 class="brand-font" style="margin-bottom: 0.5rem;">Add New Client Taxpayer</h3>
+            <form id="add-taxpayer-form" onsubmit="addTaxpayer(event)">
+                <div class="form-grid">
+                    <input type="text" id="tp-name" placeholder="Taxpayer Legal Name" required>
+                    <input type="text" id="tp-pan" placeholder="PAN Number (e.g. ABCDE1234F)" required>
+                    <input type="text" id="tp-gstin" placeholder="GSTIN (Optional)">
+                    <select id="tp-entity">
+                        <option value="INDIVIDUAL">Individual / Freelancer</option>
+                        <option value="FIRM">Partnership Firm</option>
+                        <option value="PVT_LTD">Pvt Ltd Company</option>
+                        <option value="LLP">LLP</option>
+                    </select>
+                    <input type="text" id="tp-staff" placeholder="Assigned CA / Staff">
+                    <button type="submit" class="btn">Add Client</button>
+                </div>
+            </form>
+
+            <h3 class="brand-font" style="margin-top: 2rem; margin-bottom: 0.5rem;">Active Client Practice Roster</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Client ID</th>
+                        <th>Taxpayer Name</th>
+                        <th>PAN</th>
+                        <th>Entity Type</th>
+                        <th>Compliance Status</th>
+                        <th>Assigned CA Staff</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="taxpayer-table-body">
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Loading clients...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tab 2: Bulk AIS -->
+        <div id="tab-ais" class="panel tab-content" style="display: none;">
+            <h3 class="brand-font" style="margin-bottom: 0.5rem;">Bulk AIS JSON Reconciler</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                Ingest raw Income Tax Portal AIS JSON exports across client files to run automated variance detection.
+            </p>
+            <button onclick="runSampleBulkAIS()" class="btn">Run Practice Bulk AIS Reconciliation</button>
+            <div id="ais-results-box" style="margin-top: 1.5rem;"></div>
+        </div>
+
+        <!-- Tab 3: Advance Tax -->
+        <div id="tab-advtax" class="panel tab-content" style="display: none;">
+            <h3 class="brand-font" style="margin-bottom: 0.5rem;">Batch Advance Tax Installment Schedule</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                Quarterly statutory installment projection (June 15, Sept 15, Dec 15, March 15) for all practice clients.
+            </p>
+            <button onclick="loadAdvanceTaxSchedule()" class="btn">Calculate All Client Installments</button>
+            <table style="margin-top: 1.5rem;">
+                <thead>
+                    <tr>
+                        <th>Taxpayer</th>
+                        <th>Est. Gross Revenue</th>
+                        <th>Net Annual Tax</th>
+                        <th>June 15 (15%)</th>
+                        <th>Sept 15 (45%)</th>
+                        <th>Dec 15 (75%)</th>
+                        <th>March 15 (100%)</th>
+                    </tr>
+                </thead>
+                <tbody id="advtax-table-body">
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Click button above to calculate.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tab 4: Notices -->
+        <div id="tab-notices" class="panel tab-content" style="display: none;">
+            <h3 class="brand-font" style="margin-bottom: 0.5rem;">ITD Notice & Audit Defense Brief Generator</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                Select a client file to generate a formal CA pre-audit package with legal citations under Sec 44ADA/44AD and Merkle proof hash.
+            </p>
+            <div class="form-grid">
+                <input type="number" id="brief-client-id" placeholder="Client ID (e.g. 1)" value="1">
+                <button onclick="fetchDefenseBrief()" class="btn">Generate Defense Brief Package</button>
+            </div>
+            <pre id="brief-output" style="background: rgba(0, 0, 0, 0.4); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--surface-border); margin-top: 1.5rem; font-family: monospace; white-space: pre-wrap; font-size: 0.85rem; color: #a5b4fc; max-height: 400px; overflow-y: auto;"></pre>
+        </div>
+    </main>
+
+    <script>
+        async function loadDashboardMetrics() {
+            try {
+                const res = await fetch('/api/ca/dashboard');
+                const data = await res.json();
+                document.getElementById('m-total-clients').innerText = data.total_taxpayers;
+                document.getElementById('m-compliant').innerText = data.compliant_count;
+                document.getElementById('m-ais-discrepancy').innerText = data.ais_discrepancy_count;
+                document.getElementById('m-notices').innerText = data.notice_pending_count;
+                renderClientsTable(data.taxpayers);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderClientsTable(taxpayers) {
+            const tbody = document.getElementById('taxpayer-table-body');
+            if (!taxpayers || taxpayers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No client taxpayers found. Add one above!</td></tr>';
+                return;
+            }
+            tbody.innerHTML = taxpayers.map(t => {
+                let badgeClass = 'badge-compliant';
+                if (t.status === 'AIS_DISCREPANCY') badgeClass = 'badge-discrepancy';
+                if (t.status === 'NOTICE_PENDING') badgeClass = 'badge-notice';
+                return `
+                    <tr>
+                        <td>#${t.id}</td>
+                        <td style="font-weight: 600;">${t.name}</td>
+                        <td style="font-family: monospace; color: var(--cyan);">${t.pan}</td>
+                        <td>${t.entity_type}</td>
+                        <td><span class="${badgeClass}">${t.status}</span></td>
+                        <td>${t.assigned_staff || 'Unassigned'}</td>
+                        <td><button onclick="viewClientPackage(${t.id})" class="btn" style="padding: 4px 10px; font-size: 0.75rem;">View Brief</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function addTaxpayer(e) {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('tp-name').value,
+                pan: document.getElementById('tp-pan').value,
+                gstin: document.getElementById('tp-gstin').value,
+                entity_type: document.getElementById('tp-entity').value,
+                assigned_staff: document.getElementById('tp-staff').value
+            };
+            await fetch('/api/ca/taxpayers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            document.getElementById('add-taxpayer-form').reset();
+            loadDashboardMetrics();
+        }
+
+        async function runSampleBulkAIS() {
+            const sampleBatch = [
+                {
+                    taxpayer_id: 1,
+                    ais_entries: [
+                        { source_name: "Google Ireland Ltd", amount: 1500000.0, tds_deducted: 0.0, section: "195" },
+                        { source_name: "TCS Technology Corp", amount: 300000.0, tds_deducted: 30000.0, section: "194J" }
+                    ]
+                }
+            ];
+            const res = await fetch('/api/ca/bulk-ais-upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sampleBatch)
+            });
+            const data = await res.json();
+            document.getElementById('ais-results-box').innerHTML = `
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--emerald); padding: 1rem; border-radius: 8px;">
+                    <h4 style="color: var(--emerald);">✓ Bulk AIS Reconciliation Complete</h4>
+                    <p>Processed: ${data.processed_count} client files | Flagged Discrepancies: ${data.discrepancy_count}</p>
+                </div>
+            `;
+            loadDashboardMetrics();
+        }
+
+        async function loadAdvanceTaxSchedule() {
+            const res = await fetch('/api/ca/advance-tax-summary');
+            const data = await res.json();
+            const tbody = document.getElementById('advtax-table-body');
+            tbody.innerHTML = data.map(s => `
+                <tr>
+                    <td style="font-weight: 600;">${s.taxpayer_name}</td>
+                    <td>₹${s.est_gross_revenue.toLocaleString('en-IN')}</td>
+                    <td style="color: var(--emerald); font-weight: 600;">₹${s.net_annual_tax.toLocaleString('en-IN')}</td>
+                    <td>₹${s.installments.June_15_Q1.toLocaleString('en-IN')}</td>
+                    <td>₹${s.installments.Sept_15_Q2.toLocaleString('en-IN')}</td>
+                    <td>₹${s.installments.Dec_15_Q3.toLocaleString('en-IN')}</td>
+                    <td style="font-weight: 700; color: var(--cyan);">₹${s.installments.March_15_Q4.toLocaleString('en-IN')}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function fetchDefenseBrief() {
+            const id = document.getElementById('brief-client-id').value;
+            const res = await fetch(`/api/ca/defense-brief/${id}`);
+            const data = await res.json();
+            document.getElementById('brief-output').innerText = JSON.stringify(data, null, 2);
+        }
+
+        function viewClientPackage(id) {
+            document.getElementById('brief-client-id').value = id;
+            switchTab('tab-notices', document.querySelectorAll('.tab-btn')[3]);
+            fetchDefenseBrief();
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).style.display = 'block';
+            btn.classList.add('active');
+        }
+
+        // Initialize metrics on load
+        loadDashboardMetrics();
+    </script>
+</body>
+</html>
