@@ -28,6 +28,7 @@ from classifier_engine import classify_activity, simulate_retroactive_switch, ge
 import gst_engine
 import tds_engine
 import tp_engine
+import ca_engine
 app = FastAPI(title="TaxOS Production Edge Hub")
 database.init_db()
 vault = CryptoVault()
@@ -1067,3 +1068,46 @@ def reset_db():
     ledger_state["state"] = "green"
     ledger_state["last_approval_hash"] = "None"
     return {"status": "reset_successful"}
+
+# ========== CA PRACTICE MANAGEMENT SUITE ==========
+@app.get("/api/ca/dashboard")
+def get_ca_dashboard():
+    return ca_engine.generate_firm_compliance_matrix()
+
+@app.get("/api/ca/taxpayers")
+def get_ca_taxpayers():
+    return database.get_taxpayers()
+
+@app.post("/api/ca/taxpayers")
+def create_ca_taxpayer(payload: dict = Body(...)):
+    name = payload.get("name", "New Client")
+    pan = payload.get("pan", "ABCDE1234F")
+    gstin = payload.get("gstin")
+    entity_type = payload.get("entity_type", "INDIVIDUAL")
+    assigned_staff = payload.get("assigned_staff", "Unassigned")
+    tid = database.add_taxpayer(name, pan, gstin, entity_type, "COMPLIANT", assigned_staff)
+    return {"status": "created", "taxpayer_id": tid}
+
+@app.post("/api/ca/bulk-ais-upload")
+def bulk_ais_upload(payload: list = Body(...)):
+    return ca_engine.bulk_ais_reconcile(payload)
+
+@app.get("/api/ca/advance-tax-summary")
+def get_ca_advance_tax():
+    return ca_engine.batch_advance_tax_calculator()
+
+@app.get("/api/ca/defense-brief/{taxpayer_id}")
+def get_ca_defense_brief(taxpayer_id: int):
+    return ca_engine.generate_ca_audit_package(taxpayer_id)
+
+@app.post("/api/ca/notices")
+def log_ca_notice(payload: dict = Body(...)):
+    taxpayer_id = int(payload.get("taxpayer_id", 1))
+    notice_section = payload.get("notice_section", "143(1)")
+    notice_date = payload.get("notice_date", datetime.date.today().isoformat())
+    status = payload.get("status", "RECEIVED")
+    brief = ca_engine.generate_ca_audit_package(taxpayer_id).get("defense_brief", "Notice defense draft")
+    nid = database.add_notice(taxpayer_id, notice_section, notice_date, status, brief)
+    database.update_taxpayer_status(taxpayer_id, "NOTICE_PENDING")
+    return {"status": "logged", "notice_id": nid}
+

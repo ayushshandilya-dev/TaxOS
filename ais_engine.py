@@ -182,64 +182,30 @@ def _clamp(value: float, lo: float, hi: float) -> float:
 # Public API
 # ---------------------------------------------------------------------------
 
-def reconcile(invoices: list[dict], ais_entries: list[dict]) -> dict:
+def reconcile(invoices: list[dict] = None, ais_entries: list[dict] = None) -> dict:
     """Reconcile freelancer invoices against AIS entries.
 
-    Performs fuzzy matching between ``ais_entry['source_name']`` and
-    ``invoice['vendor']`` combined with an amount-tolerance check to
-    pair each AIS record with the most likely invoice.
-
-    Matching algorithm (greedy, best-first)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    1. Compute the cross-product of all ``(ais_entry, invoice)`` pairs.
-    2. For each pair, calculate ``name_similarity`` and check
-       ``_amounts_within_tolerance``.  Pairs where the name similarity
-       is below ``_NAME_MATCH_THRESHOLD`` **or** the amounts are outside
-       tolerance are discarded.
-    3. Remaining candidates are sorted by descending ``match_confidence``.
-    4. Pairs are accepted greedily: once an AIS entry or invoice is
-       consumed by a match, it is unavailable for further pairing.
-
-    Parameters
-    ----------
-    invoices : list[dict]
-        Each dict must contain at minimum::
-
-            {
-                "id": <any>,
-                "vendor": str,
-                "amount": float,
-                "date": str,           # ISO-8601 or any string
-                "payment_state": str,
-            }
-
-    ais_entries : list[dict]
-        Each dict must contain at minimum::
-
-            {
-                "source_name": str,
-                "amount": float,
-                "tds_deducted": float,
-                "section": str,        # e.g. "194J", "194C"
-            }
+    If invoices or ais_entries are None, they are automatically fetched from the database.
 
     Returns
     -------
     dict
-        Keys:
-
+        A dictionary containing the reconciliation results:
         * ``matched`` – list of ``{ais_entry, invoice, match_confidence}``
         * ``unmatched_in_ais`` – AIS entries with **no** matching invoice.
-          *The government sees income the freelancer didn't record.*
         * ``unmatched_in_books`` – invoices with **no** matching AIS entry.
-          *The freelancer invoiced but the government doesn't see it
-          (TDS may not have been deducted).*
         * ``total_ais`` – sum of AIS amounts (₹).
         * ``total_books`` – sum of invoice amounts (₹).
         * ``variance_inr`` – ``total_ais - total_books`` (₹).
         * ``confidence_pct`` – overall reconciliation confidence (0–100).
         * ``scrutiny_risk_pct`` – estimated scrutiny risk (0–100).
     """
+    if invoices is None:
+        import database
+        invoices = database.get_invoices(include_inactive=False)
+    if ais_entries is None:
+        import database
+        ais_entries = database.get_ais_entries()
 
     # ------------------------------------------------------------------
     # 1.  Build scored candidate pairs
@@ -564,3 +530,26 @@ def generate_variance_report(reconciliation_result: dict) -> str:
     lines.append("=" * 68)
 
     return "\n".join(lines)
+
+
+def parse_bulk_ais_json(json_content: str) -> list[dict[str, Any]]:
+    """Parses raw AIS JSON export from the Income Tax e-filing portal.
+    Extracts Information Source, Payment Amount, TDS Deducted, and Section.
+    """
+    import json
+    try:
+        data = json.loads(json_content)
+        entries = []
+        # Support both standardized array and e-filing payload structure
+        items = data if isinstance(data, list) else data.get("tds_information", data.get("ais_details", []))
+        for item in items:
+            entries.append({
+                "source_name": item.get("source_name", item.get("deductor_name", "Unknown Source")),
+                "amount": float(item.get("amount", item.get("gross_amount", 0.0))),
+                "tds_deducted": float(item.get("tds_deducted", item.get("tax_deducted", 0.0))),
+                "section": item.get("section", "TDS")
+            })
+        return entries
+    except Exception:
+        return []
+

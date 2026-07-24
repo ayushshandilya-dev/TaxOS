@@ -190,6 +190,45 @@ def init_db():
         )
     """)
 
+    # 13. CA Practice - Taxpayers (Multi-Client Roster)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS taxpayers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,       -- Encrypted
+            pan TEXT NOT NULL,        -- Encrypted
+            gstin TEXT,               -- Encrypted
+            entity_type TEXT DEFAULT 'INDIVIDUAL', -- INDIVIDUAL, FIRM, PVT_LTD, LLP
+            status TEXT DEFAULT 'COMPLIANT',       -- COMPLIANT, AIS_DISCREPANCY, NOTICE_PENDING, ADVANCE_TAX_DUE
+            assigned_staff TEXT DEFAULT 'Unassigned',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # 14. CA Practice - Staff Members (RBAC)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS staff_members (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            role TEXT DEFAULT 'ARTICLED_CLERK', -- PARTNER, SENIOR_CA, ARTICLED_CLERK
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # 15. CA Practice - Notice & Scrutiny Tracker
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS notice_tracker (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            taxpayer_id INTEGER NOT NULL,
+            notice_section TEXT NOT NULL, -- 143(1), 139(9), 148, 142(1)
+            notice_date TEXT NOT NULL,
+            status TEXT DEFAULT 'RECEIVED', -- RECEIVED, DEFENSE_DRAFTED, RESPONSE_FILED, CLOSED
+            defense_brief TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (taxpayer_id) REFERENCES taxpayers (id)
+        )
+    """)
+
     conn.commit()
     
     # Seed default user, client, financial year, and genesis block if database is empty
@@ -439,6 +478,9 @@ def clear_db():
     cursor.execute("DROP TABLE IF EXISTS gstr2b_entries")
     cursor.execute("DROP TABLE IF EXISTS tds_records")
     cursor.execute("DROP TABLE IF EXISTS cross_border_tx")
+    cursor.execute("DROP TABLE IF EXISTS taxpayers")
+    cursor.execute("DROP TABLE IF EXISTS staff_members")
+    cursor.execute("DROP TABLE IF EXISTS notice_tracker")
     conn.commit()
     conn.close()
     init_db()
@@ -539,3 +581,106 @@ def get_cross_border_txs() -> list:
     rows = cursor.fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+# --- CA Practice Suite Helpers ---
+
+def add_taxpayer(name: str, pan: str, gstin: str = None, entity_type: str = "INDIVIDUAL", status: str = "COMPLIANT", assigned_staff: str = "Unassigned") -> int:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    enc_name = vault.encrypt(name)
+    enc_pan = vault.encrypt(pan)
+    enc_gstin = vault.encrypt(gstin) if gstin else None
+    cursor.execute("""
+        INSERT INTO taxpayers (name, pan, gstin, entity_type, status, assigned_staff)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (enc_name, enc_pan, enc_gstin, entity_type, status, assigned_staff))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+def get_taxpayers() -> list:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, pan, gstin, entity_type, status, assigned_staff, created_at FROM taxpayers ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    results = []
+    for row in rows:
+        d = dict(row)
+        d["name"] = vault.decrypt(d["name"])
+        d["pan"] = vault.decrypt(d["pan"])
+        if d["gstin"]:
+            d["gstin"] = vault.decrypt(d["gstin"])
+        results.append(d)
+    return results
+
+def get_taxpayer_by_id(taxpayer_id: int) -> dict:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, pan, gstin, entity_type, status, assigned_staff, created_at FROM taxpayers WHERE id = ?", (taxpayer_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        d = dict(row)
+        d["name"] = vault.decrypt(d["name"])
+        d["pan"] = vault.decrypt(d["pan"])
+        if d["gstin"]:
+            d["gstin"] = vault.decrypt(d["gstin"])
+        return d
+    return None
+
+def update_taxpayer_status(taxpayer_id: int, status: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE taxpayers SET status = ? WHERE id = ?", (status, taxpayer_id))
+    conn.commit()
+    conn.close()
+
+def add_staff_member(name: str, email: str, role: str = "ARTICLED_CLERK") -> int:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO staff_members (name, email, role) VALUES (?, ?, ?)", (name, email, role))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+def get_staff_members() -> list:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, email, role, created_at FROM staff_members ORDER BY id ASC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def add_notice(taxpayer_id: int, notice_section: str, notice_date: str, status: str = "RECEIVED", defense_brief: str = None) -> int:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    enc_brief = vault.encrypt(defense_brief) if defense_brief else None
+    cursor.execute("""
+        INSERT INTO notice_tracker (taxpayer_id, notice_section, notice_date, status, defense_brief)
+        VALUES (?, ?, ?, ?, ?)
+    """, (taxpayer_id, notice_section, notice_date, status, enc_brief))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+def get_notices(taxpayer_id: int = None) -> list:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if taxpayer_id:
+        cursor.execute("SELECT * FROM notice_tracker WHERE taxpayer_id = ? ORDER BY id DESC", (taxpayer_id,))
+    else:
+        cursor.execute("SELECT * FROM notice_tracker ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    results = []
+    for row in rows:
+        d = dict(row)
+        if d["defense_brief"]:
+            d["defense_brief"] = vault.decrypt(d["defense_brief"])
+        results.append(d)
+    return results
+

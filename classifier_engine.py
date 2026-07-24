@@ -400,53 +400,15 @@ def simulate_retroactive_switch(total_receipts: float) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 def generate_defense_brief(
-    classification_result: dict[str, Any],
-    total_receipts: float,
+    classification_result: Optional[dict[str, Any]] = None,
+    total_receipts: float = 1800000.0,
 ) -> str:
     """Generate a structured plain-text legal defense document supporting the
     taxpayer's classification under Section 44AD or 44ADA.
-
-    This brief is designed to be attached to the ITR or presented during
-    assessment proceedings to preemptively address classification queries
-    from the CPC or Assessing Officer.
-
-    Parameters
-    ----------
-    classification_result : dict[str, Any]
-        Output of :func:`classify_activity`. Must contain keys:
-        ``classification``, ``confidence_pct``,
-        ``matched_professional_keywords``, ``matched_business_keywords``,
-        ``professional_score``, ``business_score``, ``risk_factors``.
-
-    total_receipts : float
-        Total gross receipts for the financial year in INR, used for
-        financial impact analysis.
-
-    Returns
-    -------
-    str
-        Multi-section legal defense brief as plain text, ready for
-        printing or PDF conversion.
-
-    Notes
-    -----
-    The case law citations included are real and widely relied upon in
-    Indian tax jurisprudence for distinguishing profession from business:
-
-    1. **CIT vs. Durga Das Khanna (1966)** — Supreme Court defined
-       "profession" as involving intellectual skill and specialized knowledge.
-    2. **DCIT vs. Ajay Jadeja (2011)** — ITAT ruled IT/software consultants
-       qualify as professionals under Section 44AA.
-    3. **Barendra Prasad Ray vs. ITO (1981)** — Supreme Court laid down
-       tests for distinguishing profession from business.
-
-    Examples
-    --------
-    >>> result = classify_activity(["Tech Consulting LLC"])
-    >>> brief = generate_defense_brief(result, 1_500_000.0)
-    >>> 'CLASSIFICATION DEFENSE BRIEF' in brief
-    True
     """
+    if classification_result is None:
+        classification_result = classify_activity(["Software Consulting Services", "IT Technical Services"])
+
     section: str = classification_result["classification"]
     confidence: float = classification_result["confidence_pct"]
     pro_keywords: list[str] = classification_result["matched_professional_keywords"]
